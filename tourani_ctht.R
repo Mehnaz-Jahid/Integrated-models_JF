@@ -20,10 +20,9 @@ ydot_2<- read.csv("CTcapthist_tourani.csv")
 
 Model_3 <- nimbleCode({
   ##-----------------------------------------------------------------
-  ------------------------------
-    ## INDIVIDUAL INCLUSION
-    ## AC LOCATIONS
-    psi ~ dunif(0, 1)
+  ## INDIVIDUAL INCLUSION
+  ## AC LOCATIONS
+  psi ~ dunif(0, 1)
   
   for (i in 1:M) {
     z[i] ~ dbern(psi) ## equation (2)
