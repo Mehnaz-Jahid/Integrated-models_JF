@@ -78,11 +78,11 @@ model <- nimbleModel(Model_3,
                                   p0_2 = .5,
                                   psi = .5))
 
-sample_model3<-nimbleMCMC(Model_3,
+sample_model3<-nimbleMCMC(model,
                           data=data,
-                          niter=10000,
-                          nburnin=1000,
-                          thin= 20,
+                          niter=1000, #10000,
+                          nburnin=100, #1000,
+                          thin= 1, #20,
                           nchains=2,
                           samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
