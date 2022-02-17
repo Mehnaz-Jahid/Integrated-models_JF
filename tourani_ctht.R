@@ -56,13 +56,13 @@ Model_3 <- nimbleCode({
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-data <- list(mask = c(pull(mask,"id"),
-                      pull(mask,"x"),
-                      pull(mask,"y")),
-             traps_hair = c(pull(traps_hair,"x"),
-                            pull(traps_hair,"y")),
-             traps_ct =  c(pull(traps_ct,"x"),
-                           pull(traps_ct,"y")),
+data <- list(mask = cbind(pull(mask,"id"),
+                          pull(mask,"x"),
+                          pull(mask,"y")),
+             traps_hair = cbind(pull(traps_hair,"x"),
+                                pull(traps_hair,"y")),
+             traps_ct =  cbind(pull(traps_ct,"x"),
+                               pull(traps_ct,"y")),
              y_1 = y_1,
              ydot_2 = as.numeric(ydot_2$X1))
 
