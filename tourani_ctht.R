@@ -51,7 +51,7 @@ Model_3 <- nimbleCode({
   }
   for (j in 1:J_2) {
     pdot_2[j] <- 1 - prod(1-p_2[1:M, j]) ## equation (5)
-    ydot_2[j] ~ dbern(pdot_2[1:J_2]) ## equation (7)
+    ydot_2[j] ~ dbern(pdot_2[j]) ## equation (7)
   }
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
@@ -64,7 +64,7 @@ data <- list(mask = cbind(pull(mask,"id"),
              traps_ct =  cbind(pull(traps_ct,"x"),
                                pull(traps_ct,"y")),
              y_1 = y_1,
-             ydot_2 = as.numeric(ydot_2$X1))
+             ydot_2 = as.numeric(ydot_2$V1))
 
 constants <- list(M = nrow(mask),
                   J_1 = J_1,
