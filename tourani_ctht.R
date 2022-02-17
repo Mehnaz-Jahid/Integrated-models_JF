@@ -37,8 +37,11 @@ Model_3 <- nimbleCode({
       (sxy[i, 3] - traps_hair[1:J_1,2])^2
     p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1])/(2*sigma*sigma)
 ## equation (4)
-##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
-y_1[i, 1:J_1] ~ dbern_vector(p_1[i, 1:J_1], z[i]) ## equation (6)
+    ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
+    for(j in 1:J_1){
+      y_1[i, j] ~ dbern(p_1[i, j] * z[i]) ## equation (6)
+    }
+    ## y_1[i, 1:J_1] ~ dbern_vector(p_1[i, 1:J_1], z[i]) ## equation (6)
   }
   ## UNIDENTIFIED DETECTIONS, SURVEY TYPE 2
   for (i in 1:M) {
@@ -48,8 +51,9 @@ y_1[i, 1:J_1] ~ dbern_vector(p_1[i, 1:J_1], z[i]) ## equation (6)
   }
   for (j in 1:J_2) {
     pdot_2[j] <- 1 - prod(1-p_2[1:M, j]) ## equation (5)
+    ydot_2[j] ~ dbern(pdot_2[1:J_2]) ## equation (7)
   }
-  ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
+  ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
 data <- list(mask = c(pull(mask,"id"),
