@@ -23,7 +23,8 @@ Model_3 <- nimbleCode({
   ------------------------------
     ## INDIVIDUAL INCLUSION
     ## AC LOCATIONS
-  psi ~ dunif(0, 1)
+    psi ~ dunif(0, 1)
+  
   for (i in 1:M) {
     z[i] ~ dbern(psi) ## equation (2)
   }
@@ -68,11 +69,10 @@ data <- list(mask = cbind(pull(mask,"id"),
 
 model <- nimbleModel(Model_3, 
                      data = data,
-                     inits = list(N = 0, 
-                                  sigma = 0,
-                                  p0_1 = 0,
-                                  p0_2 = 0,
-                                  psi = 0))
+                     inits = list(sigma = 1,
+                                  p0_1 = .5,
+                                  p0_2 = .5,
+                                  psi = .5))
 
 sample_model3<-nimbleMCMC(Model_3,
                           data=data,
