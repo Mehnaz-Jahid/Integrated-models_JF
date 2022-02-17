@@ -1,17 +1,23 @@
 rm(list = ls())
-setwd("C:/Users/mehnazjahid/Desktop/UVic/CRT/CRTmodelPaper")
 
 library(nimble)
 library(sf)
 
+#dir <- "C:/Users/mehnazjahid/Desktop/UVic/CRT/CRTmodelPaper"
+dir <- "./"
+setwd(dir)
+
 M<- 200
 J_1<- 50 # total number of  dna traps
 J_2<- 50 # total number of camera traps
-mask <- read_sf(dsn = "C:\\Users\\mehnazjahid\\Desktop\\UVic\\CRT\\CRTmodelPaper\\2012_mask_utm11n.shp")
-traps_hair<- read_sf(dsn = "C:\\Users\\mehnazjahid\\Desktop\\UVic\\CRT\\CRTmodelPaper\\dna_traps_utm11n.shp")
-traps_ct<- read_sf(dsn = "C:\\Users\\mehnazjahid\\Desktop\\UVic\\CRT\\CRTmodelPaper\\ct_traps_utm11n.shp")
+
+mask <- read_sf(dsn = file.path(dir,"2012_mask_utm11n.shp"))
+traps_hair<- read_sf(dsn = file.path(dir,"dna_traps_utm11n.shp"))
+traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
+
 y_1<- read.csv("capthist_tourani.csv")
 ydot_2<- read.csv("CTcapthist_tourani.csv")
+
 Model_3 <- nimbleCode({
   ##-----------------------------------------------------------------
   ------------------------------
@@ -46,7 +52,16 @@ y_1[i, 1:J_1] ~ dbern_vector(p_1[i, 1:J_1], z[i]) ## equation (6)
   ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-data<-list(mask, traps_hair, traps_ct, y_1, ydot_2)
+data <- list(mask = c(pull(mask,"id"),
+                      pull(mask,"x"),
+                      pull(mask,"y")),
+             traps_hair = c(pull(traps_hair,"x"),
+                            pull(traps_hair,"y")),
+             traps_ct =  c(pull(traps_ct,"x"),
+                           pull(traps_ct,"y")),
+             y_1 = y_1,
+             ydot_2 = as.numeric(ydot_2$X1))
+
 model <- nimbleModel(Model_3, 
                      data = data,
                      inits = list(N = 0, 
@@ -55,6 +70,12 @@ model <- nimbleModel(Model_3,
                                   p0_2 = 0,
                                   psi = 0))
 
-sample_model3<-nimbleMCMC(Model_3,data=data, niter=10000,nburnin=1000, thin= 20, nchains=2,samplesAsCodaMCMC = T)                                  
+sample_model3<-nimbleMCMC(Model_3,
+                          data=data,
+                          niter=10000,
+                          nburnin=1000,
+                          thin= 20,
+                          nchains=2,
+                          samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
 mcmcplot(sample_model3, dir = "C:/Users/mehnazjahid/Desktop/trash", filename = "tourani_mcmcplot")
