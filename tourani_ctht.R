@@ -16,7 +16,7 @@ traps_hair<- read_sf(dsn = file.path(dir,"dna_traps_utm11n.shp"))
 traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
 
 y_1<- read.csv("capthist_tourani.csv")
-ydot_2<- read.csv("CTcapthist_tourani.csv")
+ydot_2<- read.csv("CTcapthist_tourani.csv", header = FALSE)
 
 Model_3 <- nimbleCode({
   ##-----------------------------------------------------------------
@@ -66,8 +66,13 @@ data <- list(mask = cbind(pull(mask,"id"),
              y_1 = y_1,
              ydot_2 = as.numeric(ydot_2$X1))
 
+constants <- list(M = nrow(mask),
+                  J_1 = J_1,
+                  J_2 = J_2)
+
 model <- nimbleModel(Model_3, 
                      data = data,
+                     constants = constants,
                      inits = list(sigma = 1,
                                   p0_1 = .5,
                                   p0_2 = .5,
