@@ -35,7 +35,7 @@ Model_3 <- nimbleCode({
   for (i in 1:M) {
     d_squared_1[i, 1:J_1] <- (mask[i, 2] - traps_hair[1:J_1,1])^2 +
       (sxy[i, 3] - traps_hair[1:J_1,2])^2
-    p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1])/(2*sigma*sigma)
+    p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma*sigma))
 ## equation (4)
     ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
     for(j in 1:J_1){
@@ -47,7 +47,7 @@ Model_3 <- nimbleCode({
   for (i in 1:M) {
     d_squared_2[i, 1:J_2] <- (mask[i, 2] - traps_ct[1:J_2,1])^2 +
       (mask[i, 3] - traps_ct[1:J_2,2])^2
-    p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2])/(2*sigma*sigma) *z[i] ## equation (4)
+    p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2]/(2*sigma*sigma)) *z[i] ## equation (4)
   }
   for (j in 1:J_2) {
     pdot_2[j] <- 1 - prod(1-p_2[1:M, j]) ## equation (5)
