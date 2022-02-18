@@ -86,4 +86,5 @@ sample_model3<-nimbleMCMC(model,
                           nchains=2,
                           samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
+
 mcmcplot(sample_model3, dir = "C:/Users/mehnazjahid/Desktop/trash", filename = "tourani_mcmcplot")
