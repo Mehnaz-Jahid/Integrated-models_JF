@@ -27,6 +27,7 @@ Model_3 <- nimbleCode({
   for (i in 1:M) {
     z[i] ~ dbern(psi) ## equation (2)
   }
+  
   N <- sum(z[1:M]) ## equation (3)
   sigma ~ dunif(0, 100)
   p0_1 ~ dunif(0, 1) # for survey type 1 (HT in our case)
@@ -56,13 +57,13 @@ Model_3 <- nimbleCode({
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-data <- list(mask = cbind(pull(mask,"id"),
-                          pull(mask,"x"),
-                          pull(mask,"y")),
-             traps_hair = cbind(pull(traps_hair,"x"),
-                                pull(traps_hair,"y")),
-             traps_ct =  cbind(pull(traps_ct,"x"),
-                               pull(traps_ct,"y")),
+data <- list(mask = cbind(mask$id,
+                          mask$x,
+                          mask$y),
+             traps_hair = cbind(traps_hair$x,
+                                traps_hair$y),
+             traps_ct =  cbind(traps_ct$x,
+                               traps_ct$y),
              y_1 = y_1,
              ydot_2 = as.numeric(ydot_2$V1))
 
@@ -70,18 +71,21 @@ constants <- list(M = nrow(mask),
                   J_1 = J_1,
                   J_2 = J_2)
 
+inits <- list(z = rep(z,constants$M),
+              sigma = 1,
+              p0_1 = .5,
+              p0_2 = .5,
+              psi = .5)
+
 model <- nimbleModel(Model_3, 
                      data = data,
                      constants = constants,
-                     inits = list(sigma = 1,
-                                  p0_1 = .5,
-                                  p0_2 = .5,
-                                  psi = .5))
+                     inits = inits)
 
 sample_model3<-nimbleMCMC(model,
                           data=data,
-                          niter=1000, #10000,
-                          nburnin=100, #1000,
+                          niter=100, #10000,
+                          nburnin=10, #1000,
                           thin= 1, #20,
                           nchains=2,
                           samplesAsCodaMCMC = T)                                  
