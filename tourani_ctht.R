@@ -35,7 +35,7 @@ Model_3 <- nimbleCode({
   ## IDENTIFIED DETECTIONS, SURVEY TYPE 1
   for (i in 1:M) {
     d_squared_1[i, 1:J_1] <- (mask[i, 2] - traps_hair[1:J_1,1])^2 +
-      (sxy[i, 3] - traps_hair[1:J_1,2])^2
+      (mask[i, 3] - traps_hair[1:J_1,2])^2
     p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma*sigma))
 ## equation (4)
     ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
@@ -71,7 +71,7 @@ constants <- list(M = nrow(mask),
                   J_1 = J_1,
                   J_2 = J_2)
 
-inits <- list(z = rep(z,constants$M),
+inits <- list(z = rep(1,constants$M),
               sigma = 1,
               p0_1 = .5,
               p0_2 = .5,
