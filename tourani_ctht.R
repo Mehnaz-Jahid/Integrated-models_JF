@@ -18,6 +18,29 @@ traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
 y_1<- read.csv("capthist_tourani.csv")
 ydot_2<- read.csv("CTcapthist_tourani.csv", header = FALSE)
 
+## Extract data matrices
+mask <- cbind(mask$x,
+              mask$y)
+
+traps_hair <- cbind(traps_hair$x,
+                    traps_hair$y)
+
+traps_ct <- cbind(traps_ct$x,
+                  traps_ct$y)
+
+## Centre and scale coordinates
+centre_and_scale <- function(X, Y){
+  mu <- apply(Y,2,mean)
+  sigma <- apply(Y,2,sd)
+  
+  sapply(1:ncol(X),function(j) (X[,j] - mu[j])/sigma[j])
+}
+
+# Note: mask must go last!
+traps_hair <- centre_and_scale(traps_hair, mask)
+traps_ct <- centre_and_scale(traps_ct, mask)
+mask <- centre_and_scale(mask, mask)
+
 Model_3 <- nimbleCode({
   ##-----------------------------------------------------------------
   ## INDIVIDUAL INCLUSION
@@ -34,8 +57,8 @@ Model_3 <- nimbleCode({
   p0_2 ~ dunif(0, 1) # for survey type 2 (CT in our case)
   ## IDENTIFIED DETECTIONS, SURVEY TYPE 1
   for (i in 1:M) {
-    d_squared_1[i, 1:J_1] <- (mask[i, 2] - traps_hair[1:J_1,1])^2 +
-      (mask[i, 3] - traps_hair[1:J_1,2])^2
+    d_squared_1[i, 1:J_1] <- (mask[i, 1] - traps_hair[1:J_1,1])^2 +
+      (mask[i, 2] - traps_hair[1:J_1,2])^2
     p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma*sigma))
 ## equation (4)
     ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
@@ -46,8 +69,8 @@ Model_3 <- nimbleCode({
   }
   ## UNIDENTIFIED DETECTIONS, SURVEY TYPE 2
   for (i in 1:M) {
-    d_squared_2[i, 1:J_2] <- (mask[i, 2] - traps_ct[1:J_2,1])^2 +
-      (mask[i, 3] - traps_ct[1:J_2,2])^2
+    d_squared_2[i, 1:J_2] <- (mask[i, 1] - traps_ct[1:J_2,1])^2 +
+      (mask[i, 2] - traps_ct[1:J_2,2])^2
     p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2]/(2*sigma*sigma)) *z[i] ## equation (4)
   }
   for (j in 1:J_2) {
@@ -57,13 +80,9 @@ Model_3 <- nimbleCode({
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-data <- list(mask = cbind(mask$id,
-                          mask$x,
-                          mask$y),
-             traps_hair = cbind(traps_hair$x,
-                                traps_hair$y),
-             traps_ct =  cbind(traps_ct$x,
-                               traps_ct$y),
+data <- list(mask = mask,
+             traps_ct = traps_ct,
+             traps_hair = traps_hair,
              y_1 = y_1,
              ydot_2 = as.numeric(ydot_2$V1))
 
@@ -84,10 +103,10 @@ model <- nimbleModel(Model_3,
 
 sample_model3<-nimbleMCMC(model,
                           data=data,
-                          niter=100, #10000,
-                          nburnin=10, #1000,
+                          niter=10000,
+                          nburnin=1000,
                           thin= 1, #20,
-                          nchains=2,
+                          nchains=3,
                           samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
 
