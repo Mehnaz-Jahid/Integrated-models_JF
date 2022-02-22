@@ -12,10 +12,11 @@ J_1<- 50 # total number of  dna traps
 J_2<- 50 # total number of camera traps
 
 mask <- read_sf(dsn = file.path(dir,"2012_mask_utm11n.shp"))
+
 traps_hair<- read_sf(dsn = file.path(dir,"dna_traps_utm11n.shp"))
 traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
 
-y_1<- read.csv("capthist_tourani.csv")
+y_1<- read.csv("capthist_tourani.csv", header = TRUE)
 ydot_2<- read.csv("CTcapthist_tourani.csv", header = FALSE)
 
 ## Extract data matrices
@@ -83,15 +84,12 @@ Model_3 <- nimbleCode({
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-M <- 1000 # Maximum population size
-
 data <- list(traps_ct = traps_ct,
              traps_hair = traps_hair,
-             y_1 = rbind(as.matrix(y_1),
-                         matrix(0,M - nrow(y_1),ncol(y_1))),
+             y_1 = as.matrix(y_1),
              ydot_2 = as.numeric(ydot_2$V1))
 
-constants <- list(M = 1000,
+constants <- list(M = nrow(y_1),
                   J_1 = J_1,
                   J_2 = J_2)
 
@@ -111,6 +109,7 @@ sample_model3<-nimbleMCMC(model,
                           niter=10000,
                           nburnin=1000,
                           thin= 1, #20,
+                          monitors = c("p0_1","p0_2","psi","sigma","N"),
                           nchains=3,
                           samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
