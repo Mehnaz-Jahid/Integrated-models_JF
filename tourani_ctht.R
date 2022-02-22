@@ -16,7 +16,7 @@ mask <- read_sf(dsn = file.path(dir,"2012_mask_utm11n.shp"))
 traps_hair<- read_sf(dsn = file.path(dir,"dna_traps_utm11n.shp"))
 traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
 
-y_1<- read.csv("capthist_tourani.csv", header = TRUE)
+y_1<- read.csv("capthist_tourani.csv", header = FALSE)
 ydot_2<- read.csv("CTcapthist_tourani.csv", header = FALSE)
 
 ## Extract data matrices
