@@ -48,6 +48,9 @@ Model_3 <- nimbleCode({
   psi ~ dunif(0, 1)
   
   for (i in 1:M) {
+    sxy[i,1] ~ dunif(-3,3)
+    sxy[i,2] ~ dunif(-3,3)
+    
     z[i] ~ dbern(psi) ## equation (2)
   }
   
@@ -57,8 +60,8 @@ Model_3 <- nimbleCode({
   p0_2 ~ dunif(0, 1) # for survey type 2 (CT in our case)
   ## IDENTIFIED DETECTIONS, SURVEY TYPE 1
   for (i in 1:M) {
-    d_squared_1[i, 1:J_1] <- (mask[i, 1] - traps_hair[1:J_1,1])^2 +
-      (mask[i, 2] - traps_hair[1:J_1,2])^2
+    d_squared_1[i, 1:J_1] <- (sxy[i, 1] - traps_hair[1:J_1,1])^2 +
+      (sxy[i, 2] - traps_hair[1:J_1,2])^2
     p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma*sigma))
 ## equation (4)
     ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
@@ -69,8 +72,8 @@ Model_3 <- nimbleCode({
   }
   ## UNIDENTIFIED DETECTIONS, SURVEY TYPE 2
   for (i in 1:M) {
-    d_squared_2[i, 1:J_2] <- (mask[i, 1] - traps_ct[1:J_2,1])^2 +
-      (mask[i, 2] - traps_ct[1:J_2,2])^2
+    d_squared_2[i, 1:J_2] <- (sxy[i, 1] - traps_ct[1:J_2,1])^2 +
+      (sxy[i, 2] - traps_ct[1:J_2,2])^2
     p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2]/(2*sigma*sigma)) *z[i] ## equation (4)
   }
   for (j in 1:J_2) {
@@ -80,13 +83,15 @@ Model_3 <- nimbleCode({
   ## ydot_2[1:J_2] ~ dbern_vector(pdot_2[1:J_2], 1) ## equation (7)
 })
 
-data <- list(mask = mask,
-             traps_ct = traps_ct,
+M <- 1000 # Maximum population size
+
+data <- list(traps_ct = traps_ct,
              traps_hair = traps_hair,
-             y_1 = y_1,
+             y_1 = rbind(as.matrix(y_1),
+                         matrix(0,M - nrow(y_1),ncol(y_1))),
              ydot_2 = as.numeric(ydot_2$V1))
 
-constants <- list(M = nrow(mask),
+constants <- list(M = 1000,
                   J_1 = J_1,
                   J_2 = J_2)
 
