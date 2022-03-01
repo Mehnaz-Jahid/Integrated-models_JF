@@ -7,7 +7,6 @@ library(sf)
 dir <- "./"
 setwd(dir)
 
-M<- 200
 J_1<- 50 # total number of  dna traps
 J_2<- 50 # total number of camera traps
 
@@ -16,8 +15,10 @@ mask <- read_sf(dsn = file.path(dir,"2012_mask_utm11n.shp"))
 traps_hair<- read_sf(dsn = file.path(dir,"dna_traps_utm11n.shp"))
 traps_ct<- read_sf(dsn = file.path(dir,"ct_traps_utm11n.shp"))
 
-y_1<- read.csv("capthist_tourani_v2.csv", header = FALSE)
+y_1<- read.csv("capthist_tourani_bearSex.csv", header = FALSE)
 ydot_2<- read.csv("CTcapthist_tourani.csv", header = FALSE)
+
+M <- nrow(y_1)
 
 ## Extract data matrices
 mask <- cbind(mask$x,
