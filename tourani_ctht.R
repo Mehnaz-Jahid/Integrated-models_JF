@@ -50,8 +50,8 @@ Model_3 <- nimbleCode({
   pfemale ~ dunif(0, 1)
   
   for (i in 1:M) {
-    sxy[i,1] ~ dunif(-3,3)
-    sxy[i,2] ~ dunif(-3,3)
+    sxy[i,1] ~ dunif(range_x[1], range_x[2])
+    sxy[i,2] ~ dunif(range_y[1], range_y[2])
     
     z[i] ~ dbern(psi) ## equation (2)
 
@@ -62,8 +62,8 @@ Model_3 <- nimbleCode({
   Nfemale <- sum(z[1:M] * sex[1:M])
   Nmale <- N - Nfemale
   
-  sigma[1] ~ dunif(0, 100)
-  sigma[2] ~ dunif(0, 100)
+  sigma[1] ~ dunif(0, 500)
+  sigma[2] ~ dunif(0, 500)
   
   p0_1 ~ dunif(0, 1) # for survey type 1 (HT in our case)
   p0_2 ~ dunif(0, 1) # for survey type 2 (CT in our case)
@@ -97,33 +97,36 @@ data <- list(traps_ct = traps_ct,
              traps_hair = traps_hair,
              y_1 = as.matrix(y_1[,-ncol(y_1)]),
              ydot_2 = as.numeric(ydot_2$V1),
-             sex = as.numeric(1 * (y_1[,ncol(y_1), drop =TRUE] == "F")))
+             sex = as.numeric(1 * (y_1[,ncol(y_1), drop =TRUE] == "F")),
+             range_x = 2 * c(-1,1) * max(abs(range(traps_ct[,1]))),
+             range_y= 2 * c(-1,1) * max(abs(range(traps_ct[,2]))))
 
 constants <- list(M = M,
                   J_1 = J_1,
                   J_2 = J_2)
 
 inits <- list(z = rep(1,constants$M),
-              sigma = c(1,1),
+              sigma = c(50,50),
               p0_1 = .5,
               p0_2 = .5,
               psi = .5,
               pfemale = .5,
-              sex = ifelse(is.na(data$sex),rbinom(M,1,.5),data$sex))
+              sex = ifelse(is.na(data$sex),rbinom(M,1,.5),NA))
 
 model <- nimbleModel(Model_3, 
                      data = data,
                      constants = constants,
                      inits = inits)
 
-sample_model3<-nimbleMCMC(model,
+sample_model3 <- nimbleMCMC(model,
                           data=data,
                           niter=200,
                           nburnin=100,
                           thin= 1, #20,
                           monitors = c("p0_1","p0_2","psi","pfemale","sigma","N","Nfemale","Nmale"),
                           nchains=3,
-                          samplesAsCodaMCMC = T)                                  
+                          samplesAsCodaMCMC = T)
+
 summary(sample_model3)
 
 mcmcplot(sample_model3, dir = "C:/Users/mehnazjahid/Desktop/trash", filename = "tourani_mcmcplot")
