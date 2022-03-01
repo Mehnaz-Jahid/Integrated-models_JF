@@ -31,17 +31,16 @@ traps_ct <- cbind(traps_ct$x,
                   traps_ct$y)
 
 ## Centre and scale coordinates
-centre_and_scale <- function(X, Y){
-  mu <- apply(Y,2,mean)
-  sigma <- apply(Y,2,sd)
-  
+centre_and_scale <- function(X, mu, sigma){
   sapply(1:ncol(X),function(j) (X[,j] - mu[j])/sigma[j])
 }
 
-# Note: mask must go last!
-traps_hair <- centre_and_scale(traps_hair, mask)
-traps_ct <- centre_and_scale(traps_ct, mask)
-mask <- centre_and_scale(mask, mask)
+mu <- apply(mask,2,mean)
+sigma <- c(1000,1000)
+  
+traps_hair <- centre_and_scale(traps_hair, mu = mu, sigma = sigma)
+traps_ct <- centre_and_scale(traps_ct, mu = mu, sigma = sigma)
+mask <- centre_and_scale(mask, mu = mu, sigma = sigma)
 
 Model_3 <- nimbleCode({
   ##-----------------------------------------------------------------
@@ -60,6 +59,9 @@ Model_3 <- nimbleCode({
   }
   
   N <- sum(z[1:M]) ## equation (3)
+  Nfemale <- sum(z[1:M] * sex[1:M])
+  Nmale <- N - Nfemale
+  
   sigma[1] ~ dunif(0, 100)
   sigma[2] ~ dunif(0, 100)
   
@@ -102,11 +104,12 @@ constants <- list(M = M,
                   J_2 = J_2)
 
 inits <- list(z = rep(1,constants$M),
-              sigma = 1,
+              sigma = c(1,1),
               p0_1 = .5,
               p0_2 = .5,
               psi = .5,
-              pfemale = .5)
+              pfemale = .5,
+              sex = ifelse(is.na(data$sex),rbinom(M,1,.5),data$sex))
 
 model <- nimbleModel(Model_3, 
                      data = data,
@@ -115,10 +118,10 @@ model <- nimbleModel(Model_3,
 
 sample_model3<-nimbleMCMC(model,
                           data=data,
-                          niter=10000,
-                          nburnin=1000,
+                          niter=200,
+                          nburnin=100,
                           thin= 1, #20,
-                          monitors = c("p0_1","p0_2","psi","sigma","N"),
+                          monitors = c("p0_1","p0_2","psi","pfemale","sigma","N","Nfemale","Nmale"),
                           nchains=3,
                           samplesAsCodaMCMC = T)                                  
 summary(sample_model3)
