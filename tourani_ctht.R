@@ -48,23 +48,29 @@ Model_3 <- nimbleCode({
   ## INDIVIDUAL INCLUSION
   ## AC LOCATIONS
   psi ~ dunif(0, 1)
+  pfemale ~ dunif(0, 1)
   
   for (i in 1:M) {
     sxy[i,1] ~ dunif(-3,3)
     sxy[i,2] ~ dunif(-3,3)
     
     z[i] ~ dbern(psi) ## equation (2)
+
+    sex[i] ~ dbern(pfemale)
   }
   
   N <- sum(z[1:M]) ## equation (3)
-  sigma ~ dunif(0, 100)
+  sigma[1] ~ dunif(0, 100)
+  sigma[2] ~ dunif(0, 100)
+  
   p0_1 ~ dunif(0, 1) # for survey type 1 (HT in our case)
   p0_2 ~ dunif(0, 1) # for survey type 2 (CT in our case)
+  
   ## IDENTIFIED DETECTIONS, SURVEY TYPE 1
   for (i in 1:M) {
     d_squared_1[i, 1:J_1] <- (sxy[i, 1] - traps_hair[1:J_1,1])^2 +
       (sxy[i, 2] - traps_hair[1:J_1,2])^2
-    p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma*sigma))
+    p_1[i, 1:J_1] <- p0_1 * exp(-d_squared_1[i,1:J_1]/(2*sigma[1+sex[i]]*sigma[1+sex[i]]))
 ## equation (4)
     ##p_1 in model 1 and 3 is equivalent to p_1*alpha in model 2 and 4
     for(j in 1:J_1){
@@ -76,7 +82,7 @@ Model_3 <- nimbleCode({
   for (i in 1:M) {
     d_squared_2[i, 1:J_2] <- (sxy[i, 1] - traps_ct[1:J_2,1])^2 +
       (sxy[i, 2] - traps_ct[1:J_2,2])^2
-    p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2]/(2*sigma*sigma)) *z[i] ## equation (4)
+    p_2[i, 1:J_2] <- p0_2 * exp(-d_squared_2[i,1:J_2]/(2*sigma[1+sex[i]]*sigma[1+sex[i]])) *z[i] ## equation (4)
   }
   for (j in 1:J_2) {
     pdot_2[j] <- 1 - prod(1-p_2[1:M, j]) ## equation (5)
@@ -87,10 +93,11 @@ Model_3 <- nimbleCode({
 
 data <- list(traps_ct = traps_ct,
              traps_hair = traps_hair,
-             y_1 = as.matrix(y_1),
-             ydot_2 = as.numeric(ydot_2$V1))
+             y_1 = as.matrix(y_1[,-ncol(y_1)]),
+             ydot_2 = as.numeric(ydot_2$V1),
+             sex = as.numeric(1 * (y_1[,ncol(y_1), drop =TRUE] == "F")))
 
-constants <- list(M = nrow(y_1),
+constants <- list(M = M,
                   J_1 = J_1,
                   J_2 = J_2)
 
@@ -98,7 +105,8 @@ inits <- list(z = rep(1,constants$M),
               sigma = 1,
               p0_1 = .5,
               p0_2 = .5,
-              psi = .5)
+              psi = .5,
+              pfemale = .5)
 
 model <- nimbleModel(Model_3, 
                      data = data,
