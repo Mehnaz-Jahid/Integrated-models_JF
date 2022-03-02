@@ -62,8 +62,8 @@ Model_3 <- nimbleCode({
   Nfemale <- sum(z[1:M] * sex[1:M])
   Nmale <- N - Nfemale
   
-  sigma[1] ~ dunif(0, 500)
-  sigma[2] ~ dunif(0, 500)
+  sigma[1] ~ T(dt(0,.00055,3),0,)
+  sigma[2] ~ T(dt(0,.00055,3),0,)
   
   p0_1 ~ dunif(0, 1) # for survey type 1 (HT in our case)
   p0_2 ~ dunif(0, 1) # for survey type 2 (CT in our case)
