@@ -8,15 +8,14 @@
 # Load packages
 library(coda)
 library(rjags)
-library(mcmcplots)
+#library(mcmcplots)
 
 # Setup directory
-setwd("C:/Users/mehnazjahid/Desktop/UVic/CRT/CRTmodelPaper")
 
 #--------------------- capture-recapture data -----------------------------#
 # Capture-recapture data structure : rows = individuals; columns = capture occasions
-mydata <- read.table('HTcapthist.txt') # load capture-recapture data
-mydata <- matrix(mydata)
+mydata <- read.delim('BlancEtAl/HTcapthist.txt', sep = "\t")
+
 extra = 250 # define large number of extra individual capture histories
 n = nrow(mydata) # number of observed individuals
 M = extra + n
