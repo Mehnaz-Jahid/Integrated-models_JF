@@ -24,7 +24,9 @@ x = c(xn,rep(0,extra))
 k = ncol(mydata)
 zerouse <- 0
 #-------------------- specify model ------------------------------#
+
 sink("CRandPO_HET.txt")
+
 cat("
 model{
     
